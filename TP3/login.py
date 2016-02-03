@@ -24,8 +24,32 @@ class ServiceCreationUtilisateur():
 			raise PrenomMauvaisFormatError()
 		if not nom.isalpha():
 			raise NomMauvaisFormatError()
-		self.fabrique_utilisateur.creation_utilisateur(nom, prenom, login)
+		return self.fabrique_utilisateur.creation_utilisateur(nom, prenom, login)
 
+class ServiceCreationLogin():
+	
+	def __init__(self,bdd):
+		self.base_de_donnees =bdd
+		
+	def creer_login(self, nom, prenom):
+		if len(nom) <=8 :
+			result = nom.lower()
+		else :
+			result = nom[:8].lower()
+		if self.base_de_donnees.existe_deja(result):
+			result = nom[:7].lower() + prenom[0].lower()
+			if self.base_de_donnees.existe_deja(result):
+				raise MethodeAEtBOnEchoueError()
+		return result
+		
+
+class FabriqueUtilisateur():
+	pass
+	
+class BaseDeDonne():
+	pass
+
+# Classes d'exception avec une exception specifique par probleme
 
 class LoginTropLongError(Exception):
 	pass
@@ -47,6 +71,10 @@ class NomVideError(Exception):
 
 class PrenomVideError(Exception):
 	pass
-
-class FabriqueUtilisateur():
+	
+class LoginDejaExistantError(Exception):
 	pass
+
+class MethodeAEtBOnEchoueError(Exception):
+	pass
+
