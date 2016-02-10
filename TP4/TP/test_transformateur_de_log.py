@@ -86,4 +86,116 @@ class TestLecteurDeLog(unittest.TestCase):
 	"""
 
 	def setUp(self):
-		pass
+		self.messageFactory = mock()
+		self.lecteur = LecteurDeLog(self.messageFactory)
+		
+	def test_lecteur_message_vide_erreur(self):
+		MESSAGE_VIDE=""
+		self.assertRaises(MessageMalFormateError,self.lecteur.lire_une_ligne,MESSAGE_VIDE)
+
+	def test_lecteur_message_mal_formate_trop_court_erreur(self):
+		MESSAGE_MAL_FORMATE = "test"
+		self.assertRaises(MessageMalFormateError,self.lecteur.lire_une_ligne,MESSAGE_MAL_FORMATE)
+		
+	def test_lecteur_message_date_mal_formate_erreur(self):
+		MESSAGE_DATE_MAL_FORMATE = "25-12-2015, 5, erreur_date"
+		self.assertRaises(MessageDateMalFormateError,self.lecteur.lire_une_ligne,MESSAGE_DATE_MAL_FORMATE)
+		
+	def test_lecteur_priorite_est_pas_un_entie(self):
+		MESSAGE_PRIORITE_NON_ENTIE = "2015-12-25, a, erreur_priorité"
+		self.assertRaises(MessagePrioriteError, self.lecteur.lire_une_ligne,MESSAGE_PRIORITE_NON_ENTIE)
+
+	def test_lecteur_priorite_inferieur_a_1_erreur(self):
+		MESSAGE_PRIORITE_INFERIEUR_UN = "2015-12-25, 0, erreur_priorité"
+		self.assertRaises(MessagePrioriteError, self.lecteur.lire_une_ligne,MESSAGE_PRIORITE_INFERIEUR_UN)
+		
+	def test_lecteur_priorite_superieur_a_9_erreur(self):
+		MESSAGE_PRIORITE_SUPERIEUR_NEUF = "2015-12-25, 10, erreur_priorité"
+		self.assertRaises(MessagePrioriteError, self.lecteur.lire_une_ligne,MESSAGE_PRIORITE_SUPERIEUR_NEUF)	
+	
+	def test_lecteur_priorite_egal_a_9_retourne_objet(self):
+		MESSAGE_CORRECT = "2015-12-25, 9, correct"
+		message = mock()
+		date = datetime.strptime("2015-12-25","%Y-%M-%d")
+		priorite = 9
+		texte = "correct"
+		when(self.messageFactory).creer_message(date, priorite, texte).thenReturn(message)
+		self.assertEqual(message, self.lecteur.lire_une_ligne(MESSAGE_CORRECT))
+		
+	def test_lecteur_priorite_egal_a_1_retourne_objet(self):
+		MESSAGE_CORRECT = "2015-12-25, 1, correct"
+		message = mock()
+		date = datetime.strptime("2015-12-25","%Y-%M-%d")
+		priorite = 1
+		texte = "correct"
+		when(self.messageFactory).creer_message(date, priorite, texte).thenReturn(message)
+		self.assertEqual(message, self.lecteur.lire_une_ligne(MESSAGE_CORRECT))
+	
+	def test_message_correct_retourne_un_message(self):
+		MESSAGE_CORRECT = "2015-12-25, 5, correct"
+		message = mock()
+		date = datetime.strptime("2015-12-25","%Y-%M-%d")
+		priorite = 5
+		texte = "correct"
+		when(self.messageFactory).creer_message(date, priorite, texte).thenReturn(message)
+		self.assertEqual(message, self.lecteur.lire_une_ligne(MESSAGE_CORRECT))
+	
+	def test_messages_conserves_si_correct(self):
+		MESSAGES_CORRECT = "2015-12-25, 5, correct1 \n2016-02-05, 8, correct2"
+		message1 = mock;
+		message2 = mock;
+		list_message = [message1,message2]
+		date1 = datetime.strptime("2015-12-25","%Y-%M-%d")
+		priorite1 = 5
+		texte1 = "correct1"
+		when(self.messageFactory).creer_message(date1, priorite1, texte1).thenReturn(message1)
+		date2 = datetime.strptime("2016-02-05","%Y-%M-%d")
+		priorite2 = 8
+		texte2 = "correct2"
+		when(self.messageFactory).creer_message(date2, priorite2, texte2).thenReturn(message2)
+		self.assertEqual(list_message, self.lecteur.lire_log(MESSAGES_CORRECT))
+
+	def test_messages_contenant_un_message_refuse_pour_priorite(self):
+		MESSAGES_CORRECT = "2015-12-25, 5, correct1 \n2016-02-05, a, correct2"
+		message1 = mock;
+		message2 = mock;
+		list_message = [message1]
+		date1 = datetime.strptime("2015-12-25","%Y-%M-%d")
+		priorite1 = 5
+		texte1 = "correct1"
+		when(self.messageFactory).creer_message(date1, priorite1, texte1).thenReturn(message1)
+		date2 = datetime.strptime("2016-02-05","%Y-%M-%d")
+		priorite2 = 8
+		texte2 = "correct2"
+		when(self.messageFactory).creer_message(date2, priorite2, texte2).thenReturn(message2)
+		self.assertEqual(list_message, self.lecteur.lire_log(MESSAGES_CORRECT))
+		
+	def test_messages_contenant_un_message_refuse_pour_date(self):
+		MESSAGES_CORRECT = "2015-12-25, 5, correct1 \n20-02-2015, 5, correct2"
+		message1 = mock;
+		message2 = mock;
+		list_message = [message1]
+		date1 = datetime.strptime("2015-12-25","%Y-%M-%d")
+		priorite1 = 5
+		texte1 = "correct1"
+		when(self.messageFactory).creer_message(date1, priorite1, texte1).thenReturn(message1)
+		date2 = datetime.strptime("2016-02-05","%Y-%M-%d")
+		priorite2 = 8
+		texte2 = "correct2"
+		when(self.messageFactory).creer_message(date2, priorite2, texte2).thenReturn(message2)
+		self.assertEqual(list_message, self.lecteur.lire_log(MESSAGES_CORRECT))
+		
+	def test_messages_contenant_un_message_refuse_pour_format(self):
+		MESSAGES_CORRECT = "2015-12-25, 5, correct1 \n20-02-2015,  correct2"
+		message1 = mock;
+		message2 = mock;
+		list_message = [message1]
+		date1 = datetime.strptime("2015-12-25","%Y-%M-%d")
+		priorite1 = 5
+		texte1 = "correct1"
+		when(self.messageFactory).creer_message(date1, priorite1, texte1).thenReturn(message1)
+		date2 = datetime.strptime("2016-02-05","%Y-%M-%d")
+		priorite2 = 8
+		texte2 = "correct2"
+		when(self.messageFactory).creer_message(date2, priorite2, texte2).thenReturn(message2)
+		self.assertEqual(list_message, self.lecteur.lire_log(MESSAGES_CORRECT))
