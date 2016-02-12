@@ -1,0 +1,4 @@
+*.tar.gz
+/TP5/__pycache__
+/TP5/.coverage
+*__pycache__
