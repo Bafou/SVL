@@ -53,15 +53,27 @@ class JeuFermerBoite():
 
 	def ouvrir_tuile(self, num_tuile):
 		self.plateau[num_tuile-1]=False
+		
+	def tour(self, joueur):
+		termine = False
+		while (not(termine)) :
+			try :
+				self.lancer_des(2)
+				break
+			except LancerTerminerError: 
+				termine = True
+			if self.tuiles_disponible == []:
+				termine = True
+		self.afficheur.notifier_tour_termine()
 
-	"""
+	
 	def tuiles_disponible(self):
 		res = []
 		for i in range(len(self.plateau)):
 			if not self.est_fermee(i+1):
 				res.append(i+1)
 		return res
-	"""
+	
 class LancerTerminerError(Exception):
 	pass
 	

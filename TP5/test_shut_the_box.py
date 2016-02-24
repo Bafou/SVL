@@ -94,6 +94,19 @@ class TestJeuFermerBoiteLancerDes(unittest.TestCase):
 		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
 		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
 		self.assertRaises(LancerTerminerError, self.jeu.lancer_des,2)
+		
+	def test_tuile_disponible_retourne_tout_au_depart(self):
+		self.assertEquals([1,2,3,4,5,6,7,8,9], self.jeu.tuiles_disponible())
+		
+	def test_tuile_disponible_retourne_bonne_tuile_quand_tuile_ferme(self):
+		self.jeu.fermer_tuile(5)
+		self.jeu.fermer_tuile(7)
+		self.assertEquals([1,2,3,4,6,8,9], self.jeu.tuiles_disponible())
+		
+	def test_tuile_disponible_retourne_liste_vide_si_plus_de_tuile_jouable(self):
+		for i in range(9):
+			self.jeu.fermer_tuile(i+1)
+		self.assertEquals([], self.jeu.tuiles_disponible())
 
 
 class TestJeuFermerBoiteTour(unittest.TestCase):
@@ -103,9 +116,37 @@ class TestJeuFermerBoiteTour(unittest.TestCase):
 		self.afficheur = mock()
 		self.lecteur = mock()
 		self.jeu = JeuFermerBoite(self.generateur_aleatoire_entre_1_et_6, self.lecteur, self.afficheur)
+		self.joueur = mock()
 
-
-	"""def_test_tour_arrete_si_saisie_errone(self):
+	def test_tour_arrete_si_saisie_errone(self):
 		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
 		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+		self.jeu.tour(self.joueur)
+		verify(self.afficheur).notifier_tour_termine
+		
+	def test_tour_arrete_si_toutes_tuiles_fermee(self):
+		for i in range(8):
+			self.jeu.fermer_tuile(i+1)
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(5).thenReturn(4)
+		when(self.lecteur).lire_saisie().thenReturn(9)
+		self.jeu.tour(self.joueur)
+		verify(self.afficheur, times = 1).notifier_lancer_terminer()
+		verify(self.afficheur, times = 1).notifier_tour_termine()
+		
+	def test_tour_terminer_au_deuxieme_lancer(self):
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(5).thenReturn(4)
+		when(self.lecteur).lire_saisie().thenReturn(9).thenRaise(SaisieIncorrectError)
+		self.jeu.tour(self.joueur)
+		verify(self.afficheur, times = 1).notifier_lancer_terminer()
+		verify(self.afficheur, times = 1).notifier_saisie_incorrect()
+		verify(self.afficheur, times = 1).notifier_tour_termine()
+		"""
+	def test_tour_si_tuile_7_8_9_ferme_demande_a_combien_de_des_lance(self):
+		self.jeu.fermer_tuile(7)
+		self.jeu.fermer_tuile(8)
+		self.jeu.fermer_tuile(9)
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(5).thenReturn(4)
+		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		verify(self.afficheur).notifier_choix_lancer_des()
+		verify(self.lecteur).lire_saisie()
 	"""	
