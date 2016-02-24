@@ -47,31 +47,29 @@ class TestJeuFermerBoiteLancerDes(unittest.TestCase):
 		inorder.verify(self.lecteur,times= 2).lire_saisie()
 		inorder.verify(self.afficheur, times=1).notifier_lancer_terminer()
 
-	def test_redemande_saisie_si_saisie_nombre_trop_grand(self):
+	def test_si_saisie_nombre_trop_grand_rollback_et_finis_sur_error(self):
 		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
 		when(self.lecteur).lire_saisie().thenReturn(5).thenReturn(2)
-		self.jeu.lancer_des(2)
-		inorder.verify(self.afficheur, times = 2).notifier_demande_saisie()
-		inorder.verify(self.lecteur, times = 2).lire_saisie()
-		inorder.verify(self.afficheur, times = 2).notifier_demande_saisie()
-		inorder.verify(self.lecteur,times = 2).lire_saisie()
-		inorder.verify(self.afficheur,times = 1).notifier_lancer_terminer()
+		self.assertRaises(LancerTerminerError,self.jeu.lancer_des,2)
+		inorder.verify(self.afficheur, times = 1).notifier_demande_saisie()
+		inorder.verify(self.lecteur, times = 1).lire_saisie()
+		inorder.verify(self.afficheur, times =1).notifier_saisie_incorrect()
+		
+
 
 	def test_les_tuiles_sont_toutes_debout_au_tout_debut(self):
 		for i in range(9):
 			self.assertFalse(self.jeu.est_fermee(i+1))
 
-	def test_ferme_une_tuile_deja_ferme_erreur(self):
-		self.jeu.fermer_tuile(3)
-		self.assertRaises(DejaFermerError, self.jeu.fermer_tuile, 3)
-
-	def test_lance_des_fermer_tuile_deja_fermee_erreur(self):
-		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1).thenReturn(1)
-		when(self.lecteur).lire_saisie().thenReturn(2)
+	def test_lance_des_fermer_tuile_deja_fermee_rollback_et_finis_sur_error(self):
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1).thenReturn(2)
+		when(self.lecteur).lire_saisie().thenReturn(2).thenReturn(3)
 		self.jeu.fermer_tuile(2)
-		self.assertRaises(DejaFermerError, self.jeu.lancer_des, 2)
+		self.assertRaises(LancerTerminerError,self.jeu.lancer_des,2)
 		inorder.verify(self.afficheur, times=1).notifier_demande_saisie()
 		inorder.verify(self.lecteur,times= 1).lire_saisie()
+		inorder.verify(self.afficheur, times =1).notifier_saisie_incorrect()
+		
 
 	def test_lance_des_ferme_la_tuile_demandee(self):
 		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1).thenReturn(1)
@@ -89,9 +87,25 @@ class TestJeuFermerBoiteLancerDes(unittest.TestCase):
 	def test_lance_des_finit_avec_erreur_ne_ferme_pas(self):
 		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1).thenReturn(1)
 		when(self.lecteur).lire_saisie().thenReturn(5).thenReturn(2)
-		self.jeu.lancer_des(2)
+		self.assertRaises(LancerTerminerError,self.jeu.lancer_des,2)
 		self.assertFalse(self.jeu.est_fermee(5))
+
+	def test_saisie_incorrect_finit_avec_erreur(self):
+		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+		self.assertRaises(LancerTerminerError, self.jeu.lancer_des,2)
+
 
 class TestJeuFermerBoiteTour(unittest.TestCase):
 
-	pass
+	def setUp(self):
+		self.generateur_aleatoire_entre_1_et_6 = mock()
+		self.afficheur = mock()
+		self.lecteur = mock()
+		self.jeu = JeuFermerBoite(self.generateur_aleatoire_entre_1_et_6, self.lecteur, self.afficheur)
+
+
+	"""def_test_tour_arrete_si_saisie_errone(self):
+		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+	"""	
