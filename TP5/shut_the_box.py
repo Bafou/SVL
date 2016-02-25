@@ -30,7 +30,7 @@ class JeuFermerBoite():
 				coup = self.lecteur.lire_saisie()
 			except SaisieIncorrectError :
 				erreur= True
-			if coup <= score_act:
+			if not erreur and coup <= score_act:
 				if(self.est_fermee(coup)):
 					erreur = True
 				score_act -= coup
@@ -54,18 +54,25 @@ class JeuFermerBoite():
 	def ouvrir_tuile(self, num_tuile):
 		self.plateau[num_tuile-1]=False
 		
+	def ouvrir_toutes_tuiles(self):
+		self.plateau = [False]*9
+		
 	def tour(self, joueur):
 		termine = False
 		while (not(termine)) :
+			des = 2
+			if self.est_fermee(7) and self.est_fermee(8) and self.est_fermee(9):
+				self.afficheur.notifier_choix_lancer_des()
+				des = self.lecteur.lire_des()
 			try :
-				self.lancer_des(2)
+				self.lancer_des(des)
 				break
 			except LancerTerminerError: 
 				termine = True
-			if self.tuiles_disponible == []:
+			if self.tuiles_disponible() == []:
 				termine = True
 		self.afficheur.notifier_tour_termine()
-
+		joueur.augmente_score(sum(self.tuiles_disponible()))
 	
 	def tuiles_disponible(self):
 		res = []
@@ -73,6 +80,29 @@ class JeuFermerBoite():
 			if not self.est_fermee(i+1):
 				res.append(i+1)
 		return res
+	
+	def jouer(self, listJoueurs, nbTour):
+		tour_restant = nbTour
+		termine = False
+		gagnant = None
+		while not(termine) and tour_restant >0:
+			for joueur in listJoueurs:
+				self.afficheur.notifier_debut_tour(joueur)
+				self.tour(joueur)
+				if self.tuiles_disponible() == []:
+					termine = True
+					gagnant = joueur
+					break
+			tour_restant -= 1
+		self.afficheur.notifier_jeu_termine()
+		if gagnant != None :
+			self.afficheur.notifier_joueur_gagnant(gagnant)
+		else : 
+			gagnant = listJoueurs[0]
+			for joueur in listJoueurs :
+				if joueur.score() < gagnant.score():
+					gagnant = joueur
+			self.afficheur.notifier_joueur_gagnant(gagnant)
 	
 class LancerTerminerError(Exception):
 	pass

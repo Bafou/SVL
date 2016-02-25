@@ -138,15 +138,74 @@ class TestJeuFermerBoiteTour(unittest.TestCase):
 		when(self.lecteur).lire_saisie().thenReturn(9).thenRaise(SaisieIncorrectError)
 		self.jeu.tour(self.joueur)
 		verify(self.afficheur, times = 1).notifier_lancer_terminer()
-		verify(self.afficheur, times = 1).notifier_saisie_incorrect()
 		verify(self.afficheur, times = 1).notifier_tour_termine()
-		"""
+		
 	def test_tour_si_tuile_7_8_9_ferme_demande_a_combien_de_des_lance(self):
 		self.jeu.fermer_tuile(7)
 		self.jeu.fermer_tuile(8)
 		self.jeu.fermer_tuile(9)
-		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(5).thenReturn(4)
-		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+		when(self.lecteur).lire_des().thenReturn(2)
+		when(self.lecteur).lire_saisie().thenReturn(2)
+		self.jeu.tour(self.joueur)
 		verify(self.afficheur).notifier_choix_lancer_des()
-		verify(self.lecteur).lire_saisie()
-	"""	
+		verify(self.lecteur).lire_des()
+	
+	def test_fin_tour_ajout_des_points_au_score_du_joueur(self):
+		self.jeu.fermer_tuile(7)
+		self.jeu.fermer_tuile(8)
+		self.jeu.fermer_tuile(9)
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+		when(self.lecteur).lire_des().thenReturn(2)
+		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		self.jeu.tour(self.joueur)
+		verify(self.joueur).augmente_score(21)
+		
+	def test_ouvrir_toutes_tuiles_remet_a_zero_les_tuiles(self):
+		self.jeu.fermer_tuile(7)
+		self.jeu.fermer_tuile(8)
+		self.jeu.fermer_tuile(9)
+		self.jeu.ouvrir_toutes_tuiles()
+		self.assertEquals([1,2,3,4,5,6,7,8,9], self.jeu.tuiles_disponible())
+		
+class TestJeuFermerBoiteJouer(unittest.TestCase):
+	
+	def setUp(self):
+		self.generateur_aleatoire_entre_1_et_6 = mock()
+		self.afficheur = mock()
+		self.lecteur = mock()
+		self.jeu = JeuFermerBoite(self.generateur_aleatoire_entre_1_et_6, self.lecteur, self.afficheur)
+		self.joueur1 = mock()
+		self.joueur2 = mock()
+		
+	def test_jeu_arrete_apres_deux_joueurs_ont_joues_quand_on_indique_un_tour(self):
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+		when(self.lecteur).lire_des().thenReturn(2)
+		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		when(self.joueur1).score().thenReturn(15)
+		when(self.joueur2).score().thenReturn(10)
+		self.jeu.jouer([self.joueur1,self.joueur2],1)
+		verify(self.afficheur,times = 1).notifier_debut_tour(self.joueur1)
+		verify(self.afficheur,times = 1).notifier_debut_tour(self.joueur2)
+		verify(self.afficheur,times = 1).notifier_jeu_termine()
+		
+	def test_jeu_arrete_si_tuile_toute_ferme_et_declare_vainqueur_celui_qui_a_ferme_les_tuiles(self):
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+		when(self.lecteur).lire_des().thenReturn(2)
+		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		for i in range(9):
+			self.jeu.fermer_tuile(i+1)
+		self.jeu.jouer([self.joueur1,self.joueur2],2)
+		verify(self.afficheur,times = 1).notifier_debut_tour(self.joueur1)
+		verify(self.afficheur,times = 0).notifier_debut_tour(self.joueur2)
+		verify(self.afficheur,times = 1).notifier_jeu_termine()
+		verify(self.afficheur,times = 1).notifier_joueur_gagnant(self.joueur1)
+		
+	def test_jeu_a_fin_tour_calcul_gagnant(self):
+		when(self.generateur_aleatoire_entre_1_et_6).generer_nombre().thenReturn(1)
+		when(self.lecteur).lire_des().thenReturn(2)
+		when(self.lecteur).lire_saisie().thenRaise(SaisieIncorrectError)
+		when(self.joueur1).score().thenReturn(15)
+		when(self.joueur2).score().thenReturn(10)
+		self.jeu.jouer([self.joueur1,self.joueur2],2)
+		verify(self.afficheur,times = 1).notifier_joueur_gagnant(self.joueur2)
