@@ -43,6 +43,12 @@ class TestPageCalculPoids(unittest.TestCase):
 		label = self.navigateur.find_element_by_id('id_label_metre')
 		text = label.text
 		self.assertEqual("mètres", text)
+	def test_affiche_le_poids(self):
+		boite = self.navigateur.find_element_by_id('id_boite_saisie_taille')
+		boite.send_keys("1.60\n")
+		message = self.navigateur.find_element_by_id('id_resultat')
+		self.assertEqual(message.text, "Votre poids idéal est 57.5 kg")
+
 
 class TestPageCalculPoidsErronee(unittest.TestCase):
 

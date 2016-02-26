@@ -40,6 +40,28 @@ PAGE_RESULTAT_ERRONE  = """
 </html>
 """
 
+PAGE_RESULTAT_DEBUT  = """
+<html>
+<head>
+<title>Calculateur de poids idéal</title>
+</head>
+<body>
+	<h1 id="h1_information">Calculez votre poids idéal</h1>
+	<form id='id_formulaire_calcul_poids' method='post'>
+		<label id= 'id_label_taille'>Taille :</label>
+		<input id='id_boite_saisie_taille' name='taille' type='text'/>
+		<label id= 'id_label_metre'>mètres</label>
+		</br>
+		<label id='id_resultat'>Votre poids idéal est 
+"""
+
+PAGE_RESULTAT_FIN = """
+ kg<label>
+	</form>
+</body>
+</html>
+"""
+
 class AppliPoids:
 
 	@cherrypy.expose
@@ -47,13 +69,18 @@ class AppliPoids:
 		if(taille == None):
 			return PAGE_INDEX
 		else:
-			return PAGE_RESULTAT_ERRONE
-
-if __name__ == '__main__':
-	cherrypy.quickstart(AppliPoids())
+			cp = CalculPoids()
+			try:
+				resultat=cp.calcul_poids(taille)
+				return PAGE_RESULTAT_DEBUT + resultat + PAGE_RESULTAT_FIN
+			except TailleInvalideError:
+				return PAGE_RESULTAT_ERRONE
 
 
 class CalculPoids():
+
+	def __init__(self):
+		pass
 
 	def calcul_poids(self,taille):
 		try:
@@ -70,3 +97,8 @@ class CalculPoids():
 
 class TailleInvalideError(Exception):
 	pass
+
+if __name__ == '__main__':
+	cherrypy.quickstart(AppliPoids())
+
+
