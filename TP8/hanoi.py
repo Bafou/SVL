@@ -91,6 +91,25 @@ class Hanoi:
 			depart != arrive
 		"""
 		self.tours[arrive].ajouter_disque(self.tours[depart].retirer_disque())
+		
+	def resoudre(self, n, depart,arrive, intermediaire):
+		"""
+		pre:
+			not self.tours[depart].est_vide()
+			len(self.tours[depart].contenu) == n 
+			self.tours[arrive].est_vide()
+		post:
+			self.tours[depart].est_vide()
+			len(self.tours[arrive].contenu) == n
+			
+		"""
+		self.resoudreR(n, depart, arrive, intermediaire)
+		
+	def resoudreR(self, n, depart,arrive, intermediaire):
+		if n != 0 :
+			self.resoudreR(n-1, depart, intermediaire, arrive)
+			self.deplace_disque_A_vers_B(depart,arrive)
+			self.resoudreR(n-1, intermediaire,arrive,depart)
 
 import contract
 contract.checkmod(__name__)
@@ -102,3 +121,5 @@ if __name__ == '__main__':
     tour.ajouter_disque(1)
     hanoi = Hanoi(3)
     hanoi.deplace_disque_A_vers_B(0,1)
+    hanoi.deplace_disque_A_vers_B(1,0)
+    hanoi.resoudre(3,0,2,1)
