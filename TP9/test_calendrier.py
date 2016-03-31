@@ -130,6 +130,9 @@ class TestDateValide(unittest.TestCase):
 
 class TestNumeroJourSemaine(unittest.TestCase):
 
-	def test_jour_suivant_un_lundi_est_un_mardi(self,jour,mois,annee):
+	@given(annee= integers(min_value=1), mois = integers(min_value=1, max_value= 12), jour = integers(min_value= 1,max_value =31))
+	def test_jour_suivant_d_un_jour_dans_un_mois_est_le_jour_suivant_dans_la_semaine(self,jour,mois,annee):
 		cal = Calendrier()
-		self.assertFalse (cal.numero_jour_semaine(jour, mois, annee) == 1 and cal.numero_jour_semaine(jour+1, mois, annee) != 2)
+		assume(cal.date_valide(jour, mois ,annee) and cal.date_valide(jour+1, mois, annee))
+		self.assertFalse ((cal.numero_jour_semaine(jour, mois, annee) +1 % 7) == cal.numero_jour_semaine(jour+1, mois, annee))
+		

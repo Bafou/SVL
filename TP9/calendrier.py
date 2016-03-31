@@ -41,3 +41,44 @@ class Calendrier():
 			return (jour >= 1 and jour <= max_jour)
 		except ValueError : 
 			return False
+			
+	def numero_jour_semaine(self, jour, mois, annee):
+		if (not self date_valide(jour, mois, annee)):
+			raise ValueError()
+		ab = annee // 100
+		cd = annee % 100
+		k = ab // 4
+		q = cd // 4
+		if (mois == 1):
+			if (self.est_bissextile(annee)):
+				M = 3
+			else :
+				M = 4
+		elif (mois == 2):
+			if (self.est_bissextile(annee)):
+				M = 6
+			else :
+				M = 0
+		elif (mois == 3): 
+			M = 0
+		elif (mois == 4):
+			M = 3
+		elif (mois == 5):
+			M = 5
+		elif (mois == 6):
+			M = 1
+		elif (mois == 7):
+			M = 3
+		elif (mois == 8):
+			M = 6
+		elif (mois == 9):
+			M = 2
+		elif (mois == 10):
+			M = 4
+		elif (mois == 11) :
+			M = 0
+		elif (mois == 12) :
+			M = 2
+		 
+		j = jour
+		return (k+q+cd+M+j+2+5×ab) % 7
