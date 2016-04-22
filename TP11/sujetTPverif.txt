@@ -1,0 +1,98 @@
+PETIT Antoine & WISSOCQ Sarah
+
+TP SVL 15-16 - vérification de programmes objets
+
+######################### 1. Hoare et Dijkstra #########################
+
+Q - Que signifie le triplet de Hoare {x > 0} y := x {y > 0} ?
+	
+	Si {x>0} est vrai avant l'execution du programme (y := x) alors {y > 0} sera vrai après son execution.
+
+Q - Indiquer pour chacun des triplets suivants s'il est valide ou non, dans ce cas donner un contre-exemple.
+
+* {x > 0} y := x {y > 0} 
+	Valide
+* {x > 0} x := x + 1 {x > 10}
+	Invalide, Cex : x = 1
+* {x >0} x := 15 {x > 10}
+	Valide
+
+Q - Donner la formule logique qui doit être prouvée valide pour prouver que { x > 5 } x := x + 1 { x > 3 } en utilisant sp
+
+	sp(x = x + 1 , x > 5) = IlExiste x0 TelsQue (x0 > 5) ET (x = x0 + 1) => (x > 3)
+	PourTout x. PourTout x0. (x0 > 5) ET (x = x0 + 1) => (x > 10) doit être valide
+
+Q - Donner la formule logique qui doit être prouvée valide pour prouver que { True} si x > 0 then y := x else y := -x  { y >= 0 } en utilisant sp
+
+	PourTout x. PourTout y. ((( x > 0) ET (y = x)) OU (( x<= 0) ET (y = -x))) => (y >= 0)
+	
+
+######################### 2. Validité et satisfaisabilité #########################
+
+Q- Qu'est-ce qu'une formule valide ?
+
+	Une formule est valide si elle est vraie pour toutes les valeurs affectées à ses variables libres.
+
+Q- qu'est-ce qu'une formule satisfaisable ?
+	
+	Une formule est satisfaisable si il existe des valeurs qui la rendent vraie si affectées à ses variables libres.
+
+Q- F valide ssi ... satisfaisable (compléter les ...)
+
+	F est valide ssi NON F n'est pas satisfaisable
+
+######################### 3. z3 #########################
+
+Q- qu'est-ce qu'un solveur SMT ?
+	
+	Un solveur Satisfiability Modulo Theories est un solveur qui vérifie si un programme est satisfiable.	
+
+Q- qu'est-ce qu'une logique non décidable ?
+
+	Une logique est non décidable si on peut pas trouver d'algorithme qui permet de prouver que la formule est valide.
+
+Q- la logique du premier ordre non quantifiée est-elle décidable ?
+
+	Oui, elle est décidable.
+
+Q- donner une formule non quantifiée pour laquelle z3 ne sait pas si elle satisfaisable ou non
+
+	x*x*x + x*y == 3
+
+Q- prouver avec z3 que { x > 5 } x := x + 1 { x > 3 } (utiliser les résultats précédents)
+
+	>>> from z3 import *
+	>>> x = Int('x')
+	>>> s = Solver()
+	>>> x0 = x + 1
+	>>> s.add(Not(Implies(x>5, x0>3)))
+	>>> print(s.check())
+	unsat
+
+	Donc { x > 5 } x := x + 1 { x > 3 } est valide.
+
+Q - prouver avec z3 que { True} si x > 0 then y := x else y := -x  { y >= 0 }  (utiliser les résultats précédents)
+
+	>>> from z3 import *
+	>>> x = Int('x')
+	>>> y = Int('y')
+	>>> s = Solver()
+	>>> s.add(Not(Implies(Or(And(x > 0,y == x), And(x <= 0, y == -x)), y >= 0)))
+	>>> print(s.check())
+	unsat
+
+	Donc { True} si x > 0 then y := x else y := -x  { y >= 0 } est valide.
+
+
+
+######################### 4. vérification avec les outils de RiSE - les comptes avec et sans découvert #########################
+
+Reprendre l'étude de cas "compte" fait en CTD8 pour présenter la prog par contrats.
+
+Q- En utilisant Rise4fun pour Spec#, spécifier et vérifier un compte simple (qui ne prend pas en compte la notion de découvert). Le programme est-il prouvé correct ?
+
+Q- ajouter la notion de découvert telle que vue dans la démo du CTD8. Le programme est-il prouvé correct ? Voyez-vous pourquoi ?
+
+Q- sur ce même programme, utiliser Contracts + interprétation abstraite. Le programme est-il prouvé correct ? Une suggestion de modification est-elle proposée ? Qu'en pensez-vous ?
+
+Q- pensez-vous qu'un outil à la Pex vous aurait permis de trouver l'erreur ?
